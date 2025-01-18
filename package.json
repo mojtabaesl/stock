@@ -1,0 +1,31 @@
+{
+  "name": "Hafez",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npm run build && npm start",
+    "start": "node -r dotenv/config --no-warnings ./dist/main.js",
+    "build": "rm -fr ./dist && npx tsc --build"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cli-table3": "^0.6.5",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
+    "dotenv": "^16.4.4",
+    "jimp": "^0.22.12",
+    "playwright": "^1.41.2",
+    "ts-node": "^10.9.2",
+    "valibot": "^0.42.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "typescript": "^5.5.3"
+  },
+  "volta": {
+    "node": "20.18.1"
+  }
+}
