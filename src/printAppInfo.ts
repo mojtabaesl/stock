@@ -1,36 +1,94 @@
 import { Page } from "playwright";
 import type { User } from "./selectAccount.js";
-import { getTehranDate } from "./utils.js";
+import { logger } from "./logger.js";
+import chalk from "chalk";
+import Table from "cli-table3";
 
+const infoTable = new Table({
+  colWidths: [25, 25],
+  style: { head: [], border: [] },
+});
 export async function printAppInfo(account: User, page: Page) {
-  const transactionValue = await page.textContent("#sendorder_lblTotalPrice");
-  const totalBudget = await page.textContent(
-    "#calculator .tp-cu-po.tp-co-gr.lblTotalBudget.digit"
+  const { transactionValue, totalBudget, maxQuantityString, stockName } =
+    await getFinancialDetails(page, account.broker);
+
+  infoTable.push(
+    ["Broker", chalk.magenta(account.broker)],
+    ["Name", chalk.magenta(account.name)],
+    ["Username", chalk.magenta(account.username)],
+    ["Stock Name", chalk.magenta(stockName)],
+    ["Max Quantity", chalk.magenta(maxQuantityString)],
+    ["Total Budget", chalk.magenta(`${totalBudget} IRR`)],
+    ["Transaction Value", chalk.magenta(`${transactionValue} IRR`)],
+    ["Target Time", chalk.magenta(account.targetTime)],
+    ["Request Initiator", chalk.magenta(account.userConfig.requestInitiator)],
+    ["Warmup Offset", chalk.magenta(account.userConfig.warmupOffset)],
+    [
+      "SendButton Click Count",
+      chalk.magenta(account.userConfig.sendButtonClickCount),
+    ],
+    [
+      "SendButton Click Delay",
+      chalk.magenta(account.userConfig.sendButtonClickDelay),
+    ]
   );
-  const maxQuantityString = await page.textContent("#stock_MaxQOrder");
-  console.log("\n");
-  console.log("----------------------------------------------------");
-  console.log("Name                    : ", account?.name);
-  console.log("Username                : ", account?.username);
-  console.log("Max Quantity            : ", maxQuantityString);
-  console.log("Total Budget            : ", totalBudget, " IRR");
-  console.log("Transaction Value       : ", transactionValue, " IRR");
-  console.log(
-    "Target Time             : ",
-    getTehranDate(new Date()),
-    account?.targetTime
-  );
-  console.log("Warmup Offset           : ", account.userConfig.warmupOffset);
-  console.log(
-    "SendButton Click Count  : ",
-    account.userConfig.sendButtonClickCount
-  );
-  console.log(
-    "SendButton Click Delay  : ",
-    account.userConfig.sendButtonClickDelay
-  );
-  console.log("----------------------------------------------------");
-  console.log("Everything Is Ready To Get Rich :)");
-  console.log("Waiting ...");
-  console.log("\n");
+  console.log("\n" + infoTable.toString() + "\n");
+  logger.success("Everything Is Ready To Get Rich :)");
+  logger.waiting("To Reach Target Time" + "\n");
+}
+
+async function getFinancialDetailsInHafez(page: Page) {
+  const transactionValue =
+    (await page.textContent("#sendorder_lblTotalPrice")) ?? "";
+  const totalBudget =
+    (await page.textContent(
+      "#calculator .tp-cu-po.tp-co-gr.lblTotalBudget.digit"
+    )) ?? "";
+  const maxQuantityString = (await page.textContent("#stock_MaxQOrder")) ?? "";
+  const stockName =
+    (await page.textContent("#cell_SymbolFa span.tp-cu-po")) ?? "";
+
+  return { transactionValue, totalBudget, maxQuantityString, stockName };
+}
+
+async function getFinancialDetailsInMofid(page: Page) {
+  const transactionValue =
+    (await page.textContent('span[data-cy="order-summary-total-expense"]')) ??
+    "";
+  const maxQuantityString =
+    (await page.textContent('span[data-cy="order-form-value-max-quantity"]')) ??
+    "";
+  const totalBudget =
+    (await page.textContent('span[data-cy="account-balance-value"]')) ?? "";
+  const stockName = (await page.textContent("#symbol-header-h5")) ?? "";
+
+  return {
+    transactionValue: transactionValue.trim(),
+    totalBudget: totalBudget.trim(),
+    maxQuantityString: maxQuantityString.trim(),
+    stockName: stockName.trim(),
+  };
+}
+
+async function getFinancialDetails(page: Page, broker: User["broker"]) {
+  let res = {
+    transactionValue: "",
+    totalBudget: "",
+    maxQuantityString: "",
+    stockName: "",
+  };
+  switch (broker) {
+    case "mofid":
+      res = await getFinancialDetailsInMofid(page);
+      break;
+
+    case "hafez":
+      res = await getFinancialDetailsInHafez(page);
+      break;
+
+    default:
+      logger.error("Not a valid broker name!");
+      break;
+  }
+  return res;
 }

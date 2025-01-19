@@ -14,4 +14,4 @@ const loop = setInterval(() => {
     clearInterval(loop);
     parentPort?.postMessage("click");
   }
-}, workerData.checkTimeInterval);
+}, 1);

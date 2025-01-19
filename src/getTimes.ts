@@ -6,13 +6,13 @@ type TimeZone = (typeof timeZones)[number];
 
 export function calculateZonedDates(
   clockTime: string,
-  offsetSeconds: number,
+  warmupOffsetSeconds: number,
   timeZone: TimeZone
 ) {
   const today = toZonedTime(new Date(), timeZone);
   const todayStr = format(today, "yyyy-MM-dd");
   const targetTime = toDate(`${todayStr}T${clockTime}`);
-  const warmupTime = addSeconds(targetTime, -offsetSeconds);
+  const warmupTime = addSeconds(targetTime, -warmupOffsetSeconds);
   return { targetTime, warmupTime };
 }
 
