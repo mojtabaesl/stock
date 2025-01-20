@@ -10,8 +10,8 @@ if (syncClientAndServerTime) {
   });
   const loop = setInterval(() => {
     const currentDate = new Date();
-    const updatedDate = new Date(currentDate.getTime() + diff);
-    if (currentDate > warmupTime && !isWarmedUp) {
+    const updatedDate = new Date(currentDate.getTime() - diff);
+    if (updatedDate > warmupTime && !isWarmedUp) {
       parentPort?.postMessage("warmup");
       isWarmedUp = true;
     }
