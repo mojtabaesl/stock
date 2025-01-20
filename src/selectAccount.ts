@@ -127,18 +127,19 @@ export async function selectAccount() {
     );
 
     includedUsers.forEach((account, index) => {
-      const colorfulBroker = (broker: typeof account.broker) => {
-        if (broker === "mofid") return chalk.green(broker);
-        if (broker === "hafez") return chalk.yellow(broker);
-        if (broker === "exir") return chalk.blue(broker);
+      const broker = account.broker;
+      const colorful = (text: string | number) => {
+        if (broker === "mofid") return chalk.green(text);
+        if (broker === "hafez") return chalk.yellow(text);
+        if (broker === "exir") return chalk.blue(text);
         return broker;
       };
 
       table.push([
-        index + 1,
-        account.name,
-        colorfulBroker(account.broker),
-        account.targetTime,
+        colorful(index + 1),
+        colorful(account.name),
+        colorful(account.broker),
+        colorful(account.targetTime),
       ]);
     });
     console.log(table.toString());
