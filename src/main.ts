@@ -155,13 +155,11 @@ if (
       console.log("<<<<<<<");
       console.log("Time Sync Response:", responseBody.toString());
       const jsonResponse = JSON.parse(responseBody.toString());
-
-      // const currentTime = new Date().getTime();
-      // const diff = currentTime - jsonResponse?.serverTimestamp;
-      // console.log("Local Time:", currentTime);
-      // console.log("LocalTime - MofidTime:", diff);
+      const currentTime = new Date().getTime();
+      const diff = currentTime - jsonResponse?.serverTimestamp;
+      console.log("LocalTime - MofidTime:", diff);
       console.log("<<<<<<<", "\n");
-      worker.postMessage({ message: jsonResponse.diff });
+      worker.postMessage({ message: diff });
     }
   });
 }
