@@ -50,6 +50,32 @@ async function calcQuantityInMofid(page: Page) {
   await buyPowerButton.click();
 }
 
+async function calcQuantityInExir(page: Page) {
+  await page.waitForTimeout(1000);
+  const priceUp = await page.waitForSelector("#online-order div.price-up");
+  await priceUp.click();
+  await page.click("#online-order a.calculator");
+  await page.waitForTimeout(1000);
+  await page.click(".buying-power-container .buying-power-value");
+  await page.waitForTimeout(1000);
+
+  const visibleMaxOrder = await page
+    .locator(
+      'div.properties:has(.property-title:has-text("حجم مجاز")) .highlighttext'
+    )
+    .first();
+
+  const maxQuantityString = (await visibleMaxOrder.textContent()) ?? "";
+  const maxQuantity = parseInt(maxQuantityString.replace(/,/g, ""), 10);
+
+  const quantityString = await page.inputValue('input[name="orderQuantity"]');
+  const quantity = parseInt(quantityString.replace(/,/g, ""), 10);
+
+  if (quantity > maxQuantity) {
+    await visibleMaxOrder.click();
+  }
+}
+
 export async function calcQuantity(page: Page, broker: User["broker"]) {
   logger.waiting("To Calculate Stock Quantity");
   switch (broker) {
@@ -59,6 +85,10 @@ export async function calcQuantity(page: Page, broker: User["broker"]) {
 
     case "hafez":
       await calcQuantityInHafez(page);
+      break;
+
+    case "exir":
+      await calcQuantityInExir(page);
       break;
 
     default:

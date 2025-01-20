@@ -59,7 +59,7 @@ const SystemConfigSchema = object({
 
 const UserSchema = object({
   name: string(),
-  broker: union([literal("hafez"), literal("mofid")]),
+  broker: union([literal("hafez"), literal("mofid"), literal("exir")]),
   targetTime: pipe(
     string(),
     regex(
@@ -130,6 +130,7 @@ export async function selectAccount() {
       const colorfulBroker = (broker: typeof account.broker) => {
         if (broker === "mofid") return chalk.green(broker);
         if (broker === "hafez") return chalk.yellow(broker);
+        if (broker === "exir") return chalk.blue(broker);
         return broker;
       };
 

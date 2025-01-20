@@ -34,7 +34,12 @@ figlet.text(
       console.error("Error:", err);
       return;
     }
-    const chalkPrint = account.broker === "mofid" ? chalk.green : chalk.yellow;
+    const chalkPrint =
+      account.broker === "mofid"
+        ? chalk.green
+        : account.broker === "hafez"
+        ? chalk.yellow
+        : chalk.blue;
     console.log("\n", chalkPrint(data), "\n");
   }
 );
@@ -68,6 +73,25 @@ if (
 ) {
   await page.route(
     "https://api.hafezbroker.ir/Web/V1/Order/Post",
+    async (route, request) => {
+      if (request.method() === "POST") {
+        capturedRequest = {
+          url: request.url(),
+          headers: request.headers(),
+          body: (await request.postData()) || "",
+        };
+        console.log("Request Captured:", capturedRequest);
+      }
+      route.continue();
+    }
+  );
+}
+if (
+  account.userConfig.requestInitiator === "node" &&
+  account.broker === "exir"
+) {
+  await page.route(
+    "https://boursebimeh.exirbroker.com/api/v1/order",
     async (route, request) => {
       if (request.method() === "POST") {
         capturedRequest = {
@@ -214,10 +238,16 @@ worker.on("message", async (msg) => {
         }
       }
       const end = performance.now();
-      console.log("node initiator performance:", end - start);
       await Promise.all(requests);
       const logsDir = path.resolve(__dirname, "../logs", "logs.txt");
-      await writeFile(logsDir, JSON.stringify(logs, null, 2));
+      await writeFile(
+        logsDir,
+        JSON.stringify(
+          { broker: account.broker, performance: end - start, logs },
+          null,
+          2
+        )
+      );
     }
 
     await page.waitForTimeout(3000);

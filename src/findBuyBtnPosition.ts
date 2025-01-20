@@ -22,6 +22,15 @@ async function findButBtnPositionInMofid(page: Page) {
   return { xPosition, yPosition };
 }
 
+async function findButBtnPositionInExir(page: Page) {
+  const buyButton = await page.waitForSelector("#online-order .buy-btn");
+  const { x: xPosition, y: yPosition } = await buyButton.evaluate(
+    (btn: HTMLButtonElement) => btn.getBoundingClientRect()
+  );
+  await page.mouse.move(xPosition, yPosition);
+  return { xPosition, yPosition };
+}
+
 export async function findButBtnPosition(page: Page, broker: User["broker"]) {
   logger.waiting("To Find BuyButton Position");
   let res = { xPosition: 0, yPosition: 0 };
@@ -32,6 +41,10 @@ export async function findButBtnPosition(page: Page, broker: User["broker"]) {
 
     case "hafez":
       res = await findButBtnPositionInHafez(page);
+      break;
+
+    case "exir":
+      res = await findButBtnPositionInExir(page);
       break;
 
     default:

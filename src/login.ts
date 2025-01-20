@@ -43,6 +43,10 @@ export async function login(page: Page, account: User) {
         await loginHafez(page, account.username, account.password);
         break;
 
+      case "exir":
+        await loginExir(page, account.username, account.password);
+        break;
+
       default:
         logger.error("Not a valid broker name!");
         break;
@@ -95,4 +99,32 @@ async function loginMofid(page: Page, username: string, password: string) {
     await page.click('a[href="https://d.easytrader.ir/"]');
   }
   await page.waitForURL("https://d.easytrader.ir/", { timeout: 60000 });
+}
+
+async function loginExir(page: Page, username: string, password: string) {
+  await page.goto("https://boursebimeh.exirbroker.com/");
+  await page.waitForSelector("#userNameInput");
+  await page.fill("#userNameInput", username);
+  await page.fill("#mat-input-2", password);
+  logger.waiting("To Load Captcha");
+  await page.waitForTimeout(5000);
+  await page.waitForSelector('#captcha:not([src=""])');
+  const base64Data = (await page.getAttribute("#captcha", "src")) as string;
+  const base64 = base64Data.replace(/^data:image\/jpeg;base64,/, "");
+  const buffer = Buffer.from(base64, "base64");
+  const asciiCaptcha = await convertImageToAscii(buffer);
+  console.log(asciiCaptcha);
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const answer = await rl.question("Please enter captcha code: ");
+  rl.close();
+
+  await page.fill("#captchaText", answer);
+
+  await page.click("#btn-login");
+  await page.waitForURL("https://boursebimeh.exirbroker.com/exir/mainNew");
 }

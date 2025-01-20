@@ -70,6 +70,41 @@ async function getFinancialDetailsInMofid(page: Page) {
   };
 }
 
+async function getFinancialDetailsInExir(page: Page) {
+  const transactionValue =
+    (await page
+      .locator('div.display-flex:has-text("ارزش معامله خرید:") span.mr-3')
+      .textContent()) ?? "";
+
+  const maxQuantityString =
+    (await page
+      .locator(
+        'div.properties:has(.property-title:has-text("حجم مجاز")) .highlighttext'
+      )
+      .first()
+      .textContent()) ?? "";
+
+  const totalBudget =
+    (await page
+      .locator(
+        'div:has-text("قدرت خرید:") >> .. >> .rh-calculate-change-div-green'
+      )
+      .first()
+      .textContent()) ?? "";
+
+  const stockName =
+    (await page.textContent(
+      ".ag-pinned-right-cols-container .ag-cell-value div.flex-lg-grow-1"
+    )) ?? "";
+
+  return {
+    transactionValue: transactionValue.trim(),
+    totalBudget: totalBudget.trim(),
+    maxQuantityString: maxQuantityString.trim(),
+    stockName: stockName.trim(),
+  };
+}
+
 async function getFinancialDetails(page: Page, broker: User["broker"]) {
   let res = {
     transactionValue: "",
@@ -84,6 +119,10 @@ async function getFinancialDetails(page: Page, broker: User["broker"]) {
 
     case "hafez":
       res = await getFinancialDetailsInHafez(page);
+      break;
+
+    case "exir":
+      res = await getFinancialDetailsInExir(page);
       break;
 
     default:
