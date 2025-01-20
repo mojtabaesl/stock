@@ -32,7 +32,7 @@ export async function printAppInfo(account: User, page: Page) {
       chalk.magenta(account.userConfig.sendButtonClickDelay),
     ]
   );
-  console.log("\n" + infoTable.toString() + "\n");
+  console.log("\n" + infoTable.toString());
   logger.success("Everything Is Ready To Get Rich :)");
   logger.waiting("To Reach Target Time" + "\n");
 }
@@ -46,7 +46,9 @@ async function getFinancialDetailsInHafez(page: Page) {
     )) ?? "";
   const maxQuantityString = (await page.textContent("#stock_MaxQOrder")) ?? "";
   const stockName =
-    (await page.textContent("#cell_SymbolFa span.tp-cu-po")) ?? "";
+    (await page.textContent(
+      "#list-container-WatchList #cell_SymbolFa span.tp-cu-po"
+    )) ?? "";
 
   return { transactionValue, totalBudget, maxQuantityString, stockName };
 }
