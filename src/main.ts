@@ -124,7 +124,7 @@ async function fireRequest(requestDetails: RequestDetails, index: number) {
     };
 
     logs.push(output);
-    console.log("Response Data : ", output);
+    // console.log("Response Data : ", output);
   } catch (error) {
     console.error("Error sending request", error);
   }
