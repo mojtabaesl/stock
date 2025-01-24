@@ -112,10 +112,11 @@ if (
 ) {
   await page.on("request", async (request) => {
     if (
-      request.url() === "https://api-mts.orbis.easytrader.ir/core/api/v2/order"
+      request.url().startsWith("https://api-mts.orbis.easytrader.ir/core/api")
     ) {
+      console.log("request captured for mofid", request);
+
       if (request.method() === "POST") {
-        console.log("this is a post");
         capturedRequest = {
           url: request.url(),
           headers: request.headers(),
