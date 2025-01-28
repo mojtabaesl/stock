@@ -229,7 +229,7 @@ worker.on("message", async (msg) => {
         }
       }
     } else if (account.userConfig.requestInitiator === "node") {
-      const start = performance.now();
+      const reqStart = performance.now();
 
       const requests = [];
       for (let i = 0; i < account.userConfig.sendButtonClickCount; i++) {
@@ -238,13 +238,21 @@ worker.on("message", async (msg) => {
           await page.waitForTimeout(account.userConfig.sendButtonClickDelay);
         }
       }
-      const end = performance.now();
+      const reqEnd = performance.now();
+
+      const start = performance.now();
       await Promise.all(requests);
+      const end = performance.now();
       const logsDir = path.resolve(__dirname, "../logs", "logs.txt");
       await writeFile(
         logsDir,
         JSON.stringify(
-          { broker: account.broker, performance: end - start, logs },
+          {
+            account,
+            apiCallTime: end - start,
+            requestsTime: reqEnd - reqStart,
+            logs,
+          },
           null,
           2
         )
