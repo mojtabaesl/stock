@@ -69,13 +69,13 @@ const UserSchema = object({
   ),
   username: string(),
   password: string(),
+  show: optional(boolean()),
   userConfig: optional(UserConfigSchema),
 });
 
 const UsersSchema = object({
   systemConfig: SystemConfigSchema,
   users: array(UserSchema),
-  excludes: optional(array(string())),
 });
 
 export type Users = InferOutput<typeof UsersSchema>;
@@ -122,9 +122,7 @@ export async function selectAccount() {
       throw new Error("users not found");
     }
 
-    const includedUsers = users.users.filter(
-      (user) => !users.excludes?.includes(user.name)
-    );
+    const includedUsers = users.users.filter((user) => user.show ?? true);
 
     includedUsers.forEach((account, index) => {
       const broker = account.broker;
