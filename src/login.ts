@@ -103,6 +103,7 @@ async function loginMofid(page: Page, username: string, password: string) {
 
 async function loginExir(page: Page, username: string, password: string) {
   await page.goto("https://boursebimeh.exirbroker.com/");
+  await page.screenshot({ path: "logs/00-login.jpg" });
   await page.waitForSelector("#userNameInput");
   await page.fill("#userNameInput", username);
   await page.fill("#mat-input-2", password);
