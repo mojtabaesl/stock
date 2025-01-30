@@ -128,17 +128,18 @@ if (
   });
 }
 
-const responses: {
+const apiResponses: {
   index: number;
   body: any;
   status: number;
 }[] = [];
 
-const requests: (RequestDetails & { index: number })[] = [];
+const apiRequests: (RequestDetails & { index: number })[] = [];
 
 async function fireRequest(requestDetails: RequestDetails, index: number) {
   try {
-    requests.push({ index, ...requestDetails });
+    apiRequests.push({ index, ...requestDetails });
+
     const response = await fetch(requestDetails.url, {
       method: "POST",
       body: requestDetails.body,
@@ -151,7 +152,7 @@ async function fireRequest(requestDetails: RequestDetails, index: number) {
       status: response.status,
     };
 
-    responses.push(output);
+    apiResponses.push(output);
   } catch (error) {
     console.error("Error sending request", error);
   }
@@ -253,8 +254,8 @@ worker.on("message", async (msg) => {
             account,
             apiCallTime: end - start,
             requestsTime: reqEnd - reqStart,
-            requests,
-            responses,
+            apiRequests,
+            apiResponses,
           },
           null,
           2
