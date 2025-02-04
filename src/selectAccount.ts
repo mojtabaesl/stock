@@ -18,6 +18,7 @@ import type { InferOutput } from "valibot";
 import { env } from "./env.js";
 import chalk from "chalk";
 import { logger } from "./logger.js";
+import { getJsonBinData } from "./utils.js";
 
 const UserConfigSchema = object({
   sendButtonClickCount: optional(number()),
@@ -80,24 +81,9 @@ const UsersSchema = object({
 
 export type Users = InferOutput<typeof UsersSchema>;
 
-async function fetchBinData(binID: string, apiKey: string) {
-  const url = `https://api.jsonbin.io/v3/b/${binID}`;
-
+async function getAccounts(binID: string) {
   try {
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Access-Key": apiKey,
-        "X-Bin-Meta": "false",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Error fetching data");
-    }
-
-    const binData = await response.json();
+    const binData = await getJsonBinData(binID);
     return parse(UsersSchema, binData);
   } catch (error) {
     console.error("An error occurred", error);
@@ -116,13 +102,13 @@ export async function selectAccount() {
       output: process.stdout,
     });
 
-    const users = await fetchBinData(env.binID, env.ApiKey);
+    const accounts = await getAccounts(env.accountsBinID);
 
-    if (!users) {
+    if (!accounts) {
       throw new Error("users not found");
     }
 
-    const includedUsers = users.users.filter((user) => user.show ?? true);
+    const includedUsers = accounts.users.filter((user) => user.show ?? true);
 
     includedUsers.forEach((account, index) => {
       const broker = account.broker;
@@ -152,24 +138,24 @@ export async function selectAccount() {
       userConfig: {
         sendButtonClickCount:
           userConfig?.sendButtonClickCount === undefined
-            ? users.systemConfig.sendButtonClickCount
+            ? accounts.systemConfig.sendButtonClickCount
             : userConfig.sendButtonClickCount,
         sendButtonClickDelay:
           userConfig?.sendButtonClickDelay === undefined
-            ? users.systemConfig.sendButtonClickDelay
+            ? accounts.systemConfig.sendButtonClickDelay
             : userConfig.sendButtonClickDelay,
         warmupOffset:
           userConfig?.warmupOffset === undefined
-            ? users.systemConfig.warmupOffset
+            ? accounts.systemConfig.warmupOffset
             : userConfig.warmupOffset,
         requestInitiator:
           userConfig?.requestInitiator === undefined
-            ? users.systemConfig.requestInitiator
+            ? accounts.systemConfig.requestInitiator
             : userConfig.requestInitiator,
         mofid: {
           syncClientAndServerTime:
             userConfig?.mofid?.syncClientAndServerTime === undefined
-              ? users.systemConfig.mofid.syncClientAndServerTime
+              ? accounts.systemConfig.mofid.syncClientAndServerTime
               : userConfig.mofid.syncClientAndServerTime,
         },
       },

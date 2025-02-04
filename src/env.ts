@@ -13,8 +13,9 @@ const EnvSchema = object({
   showBrowserGUI: boolean(),
   screenWidth: number(),
   screenHeight: number(),
-  ApiKey: pipe(string(), nonEmpty("Please enter api key")),
-  binID: pipe(string(), nonEmpty("Please enter bin ID")),
+  apiKey: pipe(string(), nonEmpty("Please enter api key")),
+  accountsBinID: pipe(string(), nonEmpty("Please enter accounts bin ID")),
+  logsBinID: pipe(string(), nonEmpty("Please enter logs bin ID")),
 });
 
 export type ENV = InferOutput<typeof EnvSchema>;
@@ -25,8 +26,9 @@ function getEnv(): ENV {
       showBrowserGUI: process.env?.SHOW_BROWSER_GUI === "true" ? true : false,
       screenWidth: Number(process.env?.SCREEN_WIDTH ?? 1920),
       screenHeight: Number(process.env?.SCREEN_HEIGHT ?? 1080),
-      ApiKey: process.env.API_KEY,
-      binID: process.env.BIN_ID,
+      apiKey: process.env.API_KEY,
+      accountsBinID: process.env.ACCOUNTS_BIN_ID,
+      logsBinID: process.env.LOGS_BIN_ID,
     };
     return parse(EnvSchema, envObject);
   } catch (error) {

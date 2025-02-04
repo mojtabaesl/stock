@@ -16,6 +16,8 @@ import figlet from "figlet";
 import chalk from "chalk";
 import { logger } from "./logger.js";
 import { writeFile } from "fs/promises";
+import { saveLogsToCloud } from "./logs.js";
+import os from "node:os";
 
 interface RequestDetails {
   url: string;
@@ -130,15 +132,19 @@ if (
 
 const apiResponses: {
   index: number;
-  body: any;
-  status: number;
+  isSuccessful: boolean;
+  message: string;
 }[] = [];
 
-const apiRequests: (RequestDetails & { index: number })[] = [];
+const apiRequests: { index: number; url: string; body: string }[] = [];
 
 async function fireRequest(requestDetails: RequestDetails, index: number) {
   try {
-    apiRequests.push({ index, ...requestDetails });
+    apiRequests.push({
+      index,
+      url: requestDetails.url,
+      body: requestDetails.body,
+    });
 
     const response = await fetch(requestDetails.url, {
       method: "POST",
@@ -146,13 +152,43 @@ async function fireRequest(requestDetails: RequestDetails, index: number) {
       headers: requestDetails.headers,
     });
 
-    const output = {
-      index,
-      body: await response.json(),
-      status: response.status,
-    };
+    // MOFID
+    // "isSuccessful": false,
+    // "message": "7002: مانده کاربر کافی نیست",
 
-    apiResponses.push(output);
+    // HAFEZ
+    // "MessageDesc": "محدودیت ارسال سفارش در ثانیه",
+    // "IsSuccessfull": false,
+
+    // EXIR
+    // "type": "orderSuccess"  "type": "error",
+    // "description": "ارزش سفارش بيش از سقف خريد است ",
+
+    const res = await response.json();
+
+    let isSuccessful: boolean = false;
+    let message: string = "";
+
+    if (account.broker === "mofid") {
+      isSuccessful = res.isSuccessful ?? false;
+      message = res.message ?? res;
+    }
+
+    if (account.broker === "hafez") {
+      isSuccessful = res.IsSuccessfull ?? false;
+      message = res.MessageDesc ?? "";
+    }
+
+    if (account.broker === "exir") {
+      isSuccessful = res.type === "orderSuccess";
+      message = res.description ?? "";
+    }
+
+    apiResponses.push({
+      index,
+      isSuccessful,
+      message,
+    });
   } catch (error) {
     console.error("Error sending request", error);
   }
@@ -247,20 +283,29 @@ worker.on("message", async (msg) => {
       await Promise.all(requests);
       const end = performance.now();
       const logsDir = path.resolve(__dirname, "../logs", "logs.txt");
+      const logs = {
+        account: {
+          broker: account.broker,
+          name: account.name,
+          userConfig: account.userConfig,
+        },
+        logs: {
+          targetTime: account.targetTime,
+          apiCallTime: end - start,
+          requestsTime: reqEnd - reqStart,
+          hostName: os.hostname() ?? "",
+          apiResponses,
+        },
+      };
       await writeFile(
         logsDir,
         JSON.stringify(
-          {
-            account,
-            apiCallTime: end - start,
-            requestsTime: reqEnd - reqStart,
-            apiRequests,
-            apiResponses,
-          },
+          { account: logs.account, logs: { ...logs.logs, apiRequests } },
           null,
           2
         )
       );
+      await saveLogsToCloud(logs);
     }
 
     await page.waitForTimeout(3000);
