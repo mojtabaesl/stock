@@ -19,6 +19,7 @@ import { env } from "./env.js";
 import chalk from "chalk";
 import { logger } from "./logger.js";
 import { getJsonBinData } from "./utils.js";
+import { parse as dateFnsParse } from "date-fns";
 
 const UserConfigSchema = object({
   sendButtonClickCount: optional(number()),
@@ -81,6 +82,28 @@ const UsersSchema = object({
 
 export type Users = InferOutput<typeof UsersSchema>;
 
+function addTimingPlaceToUsers(accounts: Users) {
+  const accountsCopy = structuredClone(accounts);
+  const sortedUsers = accountsCopy.users
+    .map((user, index) => ({
+      ...user,
+      originalIndex: index,
+      timeObject: dateFnsParse(user.targetTime, "HH:mm:ss.SSS", new Date()),
+    }))
+    .sort((a, b) => a.timeObject.getTime() - b.timeObject.getTime())
+    .map((user, index) => ({
+      ...user,
+      timingPlace: index + 1,
+    }));
+
+  const accountsWithTimingPlace = accounts?.users.map((user) => ({
+    ...user,
+    timingPlace: sortedUsers.find((u) => u.name === user.name)?.timingPlace,
+  }));
+
+  return { ...accountsCopy, users: accountsWithTimingPlace };
+}
+
 async function getAccounts(binID: string) {
   try {
     const binData = await getJsonBinData(binID);
@@ -102,13 +125,14 @@ export async function selectAccount() {
       output: process.stdout,
     });
 
-    const accounts = await getAccounts(env.accountsBinID);
-
-    if (!accounts) {
+    const fetchedAccounts = await getAccounts(env.accountsBinID);
+    if (!fetchedAccounts) {
       throw new Error("users not found");
     }
+    const accounts = addTimingPlaceToUsers(fetchedAccounts);
 
     const includedUsers = accounts.users.filter((user) => user.show ?? true);
+    
 
     includedUsers.forEach((account, index) => {
       const broker = account.broker;
@@ -132,6 +156,7 @@ export async function selectAccount() {
     rl.close();
 
     const account = includedUsers[Number(accountID) - 1];
+    if (!account) throw new Error("Invalid Account ID");
     const { userConfig } = account;
     const res = {
       ...account,

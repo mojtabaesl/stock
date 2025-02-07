@@ -63,3 +63,7 @@ export async function updateJsonBinData(binID: string, body: unknown) {
 
   return await response.json();
 }
+
+export function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

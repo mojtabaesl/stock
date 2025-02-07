@@ -305,7 +305,7 @@ worker.on("message", async (msg) => {
           2
         )
       );
-      await saveLogsToCloud(logs);
+      await saveLogsToCloud(logs, account.timingPlace);
     }
 
     await page.waitForTimeout(3000);

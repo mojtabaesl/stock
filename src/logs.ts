@@ -1,4 +1,4 @@
-import { getJsonBinData, updateJsonBinData } from "./utils.js";
+import { getJsonBinData, updateJsonBinData, wait } from "./utils.js";
 import { env } from "./env.js";
 import { logger } from "./logger.js";
 import {
@@ -86,8 +86,12 @@ async function getLogs() {
   }
 }
 
-export async function saveLogsToCloud(logs: Logs) {
+export async function saveLogsToCloud(
+  logs: Logs,
+  timingPlace: number | undefined
+) {
   try {
+    await wait(4000 + (timingPlace ?? 1) * 1000);
     const currentLogs = await getLogs();
     const id = logs.account.name + "-" + logs.account.broker;
 
