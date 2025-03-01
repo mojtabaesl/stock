@@ -16,7 +16,6 @@ import figlet from "figlet";
 import chalk from "chalk";
 import { logger } from "./logger.js";
 import { writeFile } from "fs/promises";
-import { saveLogsToCloud } from "./logs.js";
 import os from "node:os";
 
 interface RequestDetails {
@@ -305,7 +304,6 @@ worker.on("message", async (msg) => {
           2
         )
       );
-      await saveLogsToCloud(logs, account.timingPlace);
     }
 
     await page.waitForTimeout(3000);

@@ -111,7 +111,6 @@ async function loginExir(page: Page, username: string, password: string) {
   const __dirname = dirname(fileURLToPath(import.meta.url));
   const captchaPath = path.resolve(__dirname, "../logs", "captcha.png");
   await page.goto("https://boursebimeh.exirbroker.com/");
-  //TODO: remove this after Exir debug
   await page.screenshot({ path: "logs/00-login.jpg" });
   await page.waitForSelector("#userNameInput");
   await page.fill("#userNameInput", username);

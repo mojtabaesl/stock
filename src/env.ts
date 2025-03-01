@@ -15,7 +15,6 @@ const EnvSchema = object({
   screenHeight: number(),
   apiKey: pipe(string(), nonEmpty("Please enter api key")),
   accountsBinID: pipe(string(), nonEmpty("Please enter accounts bin ID")),
-  logsBinID: pipe(string(), nonEmpty("Please enter logs bin ID")),
 });
 
 export type ENV = InferOutput<typeof EnvSchema>;
@@ -28,7 +27,6 @@ function getEnv(): ENV {
       screenHeight: Number(process.env?.SCREEN_HEIGHT ?? 1080),
       apiKey: process.env.API_KEY,
       accountsBinID: process.env.ACCOUNTS_BIN_ID,
-      logsBinID: process.env.LOGS_BIN_ID,
     };
     return parse(EnvSchema, envObject);
   } catch (error) {
